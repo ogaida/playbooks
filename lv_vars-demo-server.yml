@@ -1,0 +1,13 @@
+vgs:
+  - name: vg_data
+    pvs: /dev/sdb
+    # - pvs: /dev/sdb,/dev/sdc
+lvs:
+  - name: data
+    path: /data
+    size: 100%FREE
+    # falls man mehrere lvs auf einer vg haben möchte:
+    # size: 120G
+    fstype: xfs
+    # btrfs oder ext4 gehen auch
+    vgname: vg_data
