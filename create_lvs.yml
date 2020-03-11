@@ -1,0 +1,62 @@
+---
+# hier werden pvs, vgs und lvs angelegt und entsprechend gemountet
+- hosts:
+  - hier.den.servernamen.eintragen
+  become: yes
+  vars:
+    vgs:
+      - name: vg_data
+        pvs: /dev/sdb
+      # - pvs: /dev/sdb,/dev/sdc
+    lvs:
+      - name: data
+        path: /data
+        size: 100%FREE
+        # size: 120G
+        fstype: xfs
+        # btrfs oder ext4 gehen auch
+        vgname: vg_data
+  vars_prompt:
+    - name: "check"
+      prompt: "bitte die vars und hosts vorher anpassen! Abbruch mit CTRL-C"
+      private: no
+  tasks:
+  - name: Volumegroups erzeugen
+    lvg:
+      vg: '{{ item.name }}'
+      pvs: '{{ item.pvs }}'
+   with_items:
+      - "{{ vgs }}"
+  - name: Lvs entsprechend hinzufuegen
+    lvol:
+      vg: '{{ item.vgname }}'
+      lv: '{{ item.name }}'
+      size: '{{ item.size }}'
+    with_items:
+      - "{{ lvs }}"
+  - name: filesystem erzeugen
+    filesystem:
+      fstype: '{{ item.fstype }}'
+      dev: '/dev/{{ item.vgname }}/{{ item.name }}'
+    with_items:
+      - "{{ lvs }}"
+  - name: Mount-Punkte erzeugen
+    file:
+      path: '{{ item.path }}'
+      state: directory
+    with_items:
+      - "{{ lvs }}"
+  - name: "Get UUID for partition"
+    command: 'blkid -s UUID -o value /dev/{{ item.vgname }}/{{ item.name }}'
+    register: disk_blkid
+    with_items: '{{ lvs }}'
+    changed_when: False
+  - name: "Mount additional disk"
+    mount:
+      path: '{{ item.0.path }}'
+      fstype: '{{ item.0.fstype }}'
+      src: 'UUID={{ item.1.stdout }}'
+      state: '{{ item.0.mount_state|d("mounted") }}'
+    with_together:
+      - '{{ lvs }}'
+      - '{{ disk_blkid.results }}'
