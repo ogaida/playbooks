@@ -1,31 +1,18 @@
 ---
 # hier werden pvs, vgs und lvs angelegt und entsprechend gemountet
-- hosts:
-  - hier.den.servernamen.eintragen
+# Aufruf: ansible-playbook -l demo-server create_lvs.yml -e @lv_vars-demo-server.yml
+- hosts: all
   become: yes
-  vars:
-    vgs:
-      - name: vg_data
-        pvs: /dev/sdb
-      # - pvs: /dev/sdb,/dev/sdc
-    lvs:
-      - name: data
-        path: /data
-        size: 100%FREE
-        # size: 120G
-        fstype: xfs
-        # btrfs oder ext4 gehen auch
-        vgname: vg_data
   vars_prompt:
     - name: "check"
-      prompt: "bitte die vars und hosts vorher anpassen! Abbruch mit CTRL-C"
+      prompt: "Wurde die extravars übergeben? Abbruch mit CTRL-C"
       private: no
   tasks:
   - name: Volumegroups erzeugen
     lvg:
       vg: '{{ item.name }}'
       pvs: '{{ item.pvs }}'
-   with_items:
+    with_items:
       - "{{ vgs }}"
   - name: Lvs entsprechend hinzufuegen
     lvol:
