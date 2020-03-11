@@ -1,13 +1,21 @@
 vgs:
-  - name: vg_data
+  - name: vg_1g
     pvs: /dev/sdb
-    # - pvs: /dev/sdb,/dev/sdc
+  - name: vg_5g
+    pvs: /dev/sdc,/dev/sdd
 lvs:
-  - name: data
-    path: /data
+  - name: lv_1g
+    path: /data/mysql
     size: 100%FREE
-    # falls man mehrere lvs auf einer vg haben möchte:
-    # size: 120G
     fstype: xfs
-    # btrfs oder ext4 gehen auch
-    vgname: vg_data
+    vgname: vg_1g
+  - name: lv_2g
+    path: /data/backup
+    size: 2G
+    fstype: btrfs
+    vgname: vg_5g
+  - name: lv_3g
+    path: /data/log
+    size: 100%FREE
+    fstype: ext4
+    vgname: vg_5g

@@ -1,0 +1,18 @@
+- hosts: localhost
+  gather_facts: no
+  vars:
+    words:
+      - eins
+      - zwei
+  tasks:
+    - shell: "echo word--{{item}}"
+      register: echo_result
+      with_items: "{{ words }}"
+    - debug:
+        msg: "{{ item.stdout }}"
+      with_items: "{{echo_result.results}}"
+    - debug:
+        msg: "{{ item.0 }} => {{ item.1.stdout }}"
+      with_together:
+        - '{{ words }}'
+        - '{{ echo_result.results }}'
